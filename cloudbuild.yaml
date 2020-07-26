@@ -86,8 +86,8 @@ steps:
       alias convert_report="jq -r '([.resource_changes[].change.actions?]|flatten)|{\"create\":(map(select(.==\"create\"))|length),\"update\":(map(select(.==\"update\"))|length),\"delete\":(map(select(.==\"delete\"))|length)}'"
       if [ -d "environments/$BRANCH_NAME/" ]; then
         cd environments/$BRANCH_NAME
-        terraform plan -out "${BRANCH_NAME}.tfplan"
-        terraform show --json "${BRANCH_NAME}.tfplan" | convert_report > "${BRANCH_NAME}_PLAN.json"
+        terraform plan -out ${BRANCH_NAME}.tfplan
+        terraform show --json ${BRANCH_NAME}.tfplan | convert_report > ${BRANCH_NAME}_PLAN.json
       else
         for dir in environments/*/
         do 
@@ -99,7 +99,7 @@ steps:
           echo "******* At environment: ${env} ********"
           echo "*************************************************"
           terraform plan -out ${env}.tfplan || exit 1
-          terraform show --json ${env}.tfplan | convert_report > "${env}_PLAN.json"
+          terraform show --json ${env}.tfplan | convert_report > ${env}_PLAN.json
           cd ../../
         done
       fi 
