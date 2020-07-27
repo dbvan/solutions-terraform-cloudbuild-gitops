@@ -86,8 +86,8 @@ steps:
       alias convert_report="jq -r '([.resource_changes[].change.actions?]|flatten)|{\"create\":(map(select(.==\"create\"))|length),\"update\":(map(select(.==\"update\"))|length),\"delete\":(map(select(.==\"delete\"))|length)}'"
       if [ -d "environments/$BRANCH_NAME/" ]; then
         cd environments/$BRANCH_NAME
-        terraform plan -out ${BRANCH_NAME}.tfplan
-        terraform show --json ${BRANCH_NAME}.tfplan | convert_report > ${BRANCH_NAME}_PLAN.json
+        terraform plan -out '${BRANCH_NAME}.tfplan'
+        terraform show --json '${BRANCH_NAME}.tfplan' | convert_report > '${BRANCH_NAME}-PLAN.json'
       else
         for dir in environments/*/
         do 
@@ -99,7 +99,7 @@ steps:
           echo "******* At environment: ${env} ********"
           echo "*************************************************"
           terraform plan -out ${env}.tfplan || exit 1
-          terraform show --json ${env}.tfplan | convert_report > ${env}_PLAN.json
+          terraform show --json ${env}.tfplan | convert_report > '${env}-PLAN.json'
           cd ../../
         done
       fi 
@@ -114,17 +114,17 @@ steps:
   - |
       if [ -d "environments/$BRANCH_NAME/" ]; then
         cd environments/$BRANCH_NAME
-        terraform plan -detailed-exitcode -out="${BRANCH_NAME}_PLAN.json" 2> /dev/null || ec=$?
+        terraform plan -detailed-exitcode -out="${BRANCH_NAME}-PLAN.json" 2> /dev/null || ec=$?
         case $ec in
         0) echo "No Changes Found"; exit 0;;
         1) printf '%s\n' "Command exited with non-zero"; exit 1;;
         2) echo "Changes Found, opening Issue"; 
-           echo \`\`\`diff > "${BRANCH_NAME}_PLAN.json"; 
-           terraform show -no-color ${PLAN} | tee -a "${BRANCH_NAME}_PLAN.json"; 
-           echo \`\`\` >> "${BRANCH_NAME}_PLAN.json"; 
-           sed -i -e 's/  +/+/g' "${BRANCH_NAME}_PLAN.json"; 
-           sed -i -e 's/  ~/~/g' "${BRANCH_NAME}_PLAN.json"; 
-           sed -i -e 's/  -/-/g' "${BRANCH_NAME}_PLAN.json"; 
+           echo \`\`\`diff > "${BRANCH_NAME}-PLAN.json"; 
+           terraform show -no-color ${BRANCH_NAME}-PLAN.tfplan | tee -a "${BRANCH_NAME}-PLAN.json"; 
+           echo \`\`\` >> "${BRANCH_NAME}-PLAN.json"; 
+           sed -i -e 's/  +/+/g' "${BRANCH_NAME}-PLAN.json"; 
+           sed -i -e 's/  ~/~/g' "${BRANCH_NAME}-PLAN.json"; 
+           sed -i -e 's/  -/-/g' "${BRANCH_NAME}-PLAN.json"; 
            MESSAGE=$(cat "${BRANCH_NAME}_PLAN.json"); 
            ;;
         esac
@@ -143,13 +143,13 @@ steps:
           0) echo "No Changes Found"; exit 0;;
           1) printf '%s\n' "Command exited with non-zero"; exit 1;;
           2) echo "Changes Found, opening Issue"; 
-            echo \`\`\`diff > "${env}_PLAN.json"; 
-            terraform show -no-color ${PLAN} | tee -a "${env}_PLAN.json"; 
-            echo \`\`\` >> "${env}_PLAN.json"; 
-            sed -i -e 's/  +/+/g' "${env}_PLAN.json"; 
-            sed -i -e 's/  ~/~/g' "${env}_PLAN.json"; 
-            sed -i -e 's/  -/-/g' "${env}_PLAN.json"; 
-            MESSAGE=$(cat "${env}_PLAN.json"); 
+            echo \`\`\`diff > "${env}-PLAN.json"; 
+            terraform show -no-color ${env}-PLAN | tee -a "${env}-PLAN.json"; 
+            echo \`\`\` >> "${env}-PLAN.json"; 
+            sed -i -e 's/  +/+/g' "${env}-PLAN.json"; 
+            sed -i -e 's/  ~/~/g' "${env}-PLAN.json"; 
+            sed -i -e 's/  -/-/g' "${env}-PLAN.json"; 
+            MESSAGE=$(cat "${env}-PLAN.json"); 
             ;;
           esac
           cd ../../
